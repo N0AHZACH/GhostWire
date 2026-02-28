@@ -180,3 +180,7 @@ python -m pytest tests/ -v
 ## License
 
 This project is for internal/educational use. License TBD.
+
+## Credits
+
+Thank you GenAI for helping me write this READEM.md and also causing the gizzilion bugs in this projects. Thank you very much.
