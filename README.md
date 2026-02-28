@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">🔍 Project GhostWire</h1>
+  <h1 align="center">GhostWire</h1>
   <p align="center">
     <strong>AI Hallucination Detection using Judge-Model Architecture</strong>
   </p>
