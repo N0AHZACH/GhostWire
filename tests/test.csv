@@ -1,0 +1,6 @@
+
+prompt,context,expected_status
+The moon is made of green cheese.,The moon is a rocky satellite with no food on it.,Hallucination
+The UN was founded in 1945.,The United Nations was established on October 24 1945.,Safe
+Apples grow on clouds.,Apples are fruits that grow on trees.,Hallucination
+Water freezes at 0 degrees Celsius.,At sea level fresh water freezes at 0°C.,Safe
