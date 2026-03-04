@@ -1,7 +1,7 @@
 import os
 import json
 import google.generativeai as genai
-from google.genai import types
+from google import genai
 from dotenv import load_dotenv
 
 # Load variables from the root .env
