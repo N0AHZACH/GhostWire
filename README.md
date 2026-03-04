@@ -18,10 +18,10 @@
 
 **GhostWire** is an MVP tool that audits Large Language Model (LLM) outputs for **hallucinations** — statements that sound plausible but are factually incorrect or unsupported by provided context.
 
-It uses a **Judge-Model architecture**:
+It uses a **Judge-Model architecture** powered by the latest `google-genai` standard:
 
-1. A **Subject Model** (e.g., Gemini Flash) generates an answer to a given prompt.
-2. A **Judge Model** (e.g., Gemini Pro) evaluates the answer against ground-truth context and returns a structured verdict.
+1. A **Subject Model** (e.g., Gemini 2.5 Flash) generates an answer to a given prompt.
+2. A **Judge Model** (e.g., Gemini 2.5 Pro / Flash) systematically evaluates the answer claim-by-claim against ground-truth context and returns a structured JSON verdict.
 
 ---
 
@@ -29,8 +29,8 @@ It uses a **Judge-Model architecture**:
 
 ```mermaid
 flowchart LR
-    A[User Prompt + Context] --> B[Subject Model<br/>Gemini Flash]
-    B -->|Raw Answer| C[Judge Model<br/>Gemini Pro]
+    A[User Prompt + Context] --> B[Subject Model<br/>Gemini 2.5]
+    B -->|Raw Answer| C[Judge Model<br/>Gemini 2.5]
     A -->|Context| C
     C -->|Strict JSON| D{Hallucination?}
     D -->|Yes| E[⚠️ Alert + Risk Level]
@@ -41,12 +41,21 @@ flowchart LR
 
 ### JSON Verdict Schema
 
+The Judge model runs via Chain-of-Thought (CoT) and returns the following structure:
+
 ```json
 {
   "is_hallucination": true,
-  "explanation": "The subject fabricated a historical date.",
-  "confidence": 92,
-  "risk_level": 4
+  "confidence_score": 92,
+  "claims": [
+    {
+      "text": "The UN established a permanent lunar base in 2047.",
+      "status": "hallucination",
+      "reason": "Not corroborated by the provided factual context."
+    }
+  ],
+  "risk_level": 4,
+  "auditor_notes": "The subject fabricated a historical date and exhibited unearned confidence."
 }
 ```
 
@@ -61,17 +70,17 @@ ghostwire/
 │   └── ground_truth_README.md     # Placeholder for ground-truth docs
 ├── src/
 │   ├── core/
-│   │   └── engine.py              # 🔧 GhostWireEngine (pipeline)
+│   │   └── engine.py              # 🔧 GhostwireEngine (pipeline)
 │   ├── retrieval/
 │   │   └── vector_db.py           # 📚 RAG / Vector DB interface
 │   ├── analytics/
 │   │   └── scoring.py             # 📊 Hallucination metrics
 │   └── ui/
-│       └── dashboard.py           # 🖥️ Streamlit dashboard
+│       └── dashboard.py           # 🖥️ Streamlit interactive dashboard
 ├──tests/
 │   ├── test_engine.py             # ✅ Engine unit tests (mocked)
 │   ├── test_scoring.py            # ✅ Scoring & analytics tests
-│   └── test.csv
+│   └── make_test.py               # ✅ Native pipeline smoke tester
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
@@ -86,10 +95,10 @@ ghostwire/
 | ---------------------------------- | --------- | ---------------- | -------------------------------------------------------------------------------- |
 | 1 — Prompt Engineer                | TBD       | `data/`          | Designs adversarial prompts to stress-test models                                |
 | 2 — Domain Expert/RAG Specialist   | TBD       | `src/retrieval/` | Curates ground-truth documents and manages the Vector Database (ChromaDB/FAISS). |
-| 3 — Pipeline Architect             | NOAH      | `src/core/`      | Orchestrates Subject → Judge pipeline                                            |
-| 4 — Metrics Analyst                | Nikitha   | `src/analytics/` | Analyzes hallucination rates & risk                                              |
-| 5 — Frontend Developer             | TBD       | `src/ui/`        | Builds the Streamlit dashboard                                                   |
-| 6 — Ethical Risk & Validation Lead | SAFIYA KN | `src/analytics/` | Builds the Streamlit dashboard                                                   |
+| 3 — Pipeline Architect             | NOAH      | `src/core/`      | Orchestrates Subject → Judge pipeline architecture                               |
+| 4 — Metrics Analyst                | Nikitha   | `src/analytics/` | Analyzes hallucination rates, calibration gaps & risk                            |
+| 5 — Frontend Developer             | TBD       | `src/ui/`        | Builds the Streamlit dashboard & Plotly data charts                              |
+| 6 — Ethical Risk & Validation Lead | SAFIYA KN | `src/analytics/` | Ensures pipeline validity and ethical safety constraints                         |
 
 ---
 
@@ -137,11 +146,13 @@ result = engine.run_audit(
 )
 
 print(result['audit_data']['is_hallucination'])  # True
-print(result['audit_data']['auditor_notes'])     # "The subject fabricated..."
+print(result['audit_data']['auditor_notes'])     # "The subject fabricated a historical date..."
 print(result['audit_data']['risk_level'])        # 4
 ```
 
 ### Streamlit Dashboard
+
+Run the visual interface and live evaluation portal:
 
 ```bash
 streamlit run src/ui/dashboard.py
@@ -152,7 +163,7 @@ streamlit run src/ui/dashboard.py
 ```python
 from src.analytics.scoring import HallucinationScorer, AuditResult
 
-# Assume `results` is a List[AuditResult]
+# Assume `results` is a List[AuditResult] generated by mapping `engine.run_audit` responses
 report = HallucinationScorer.generate_report(results)
 
 print(f"Total Audits: {report['total_audits']}")
@@ -165,13 +176,19 @@ print(f"Risk Distribution: {report['risk_distribution']}")
 
 - **Hallucination Rate** — Percentage of audited responses flagged as hallucinations.
 - **Risk Distribution** — Distribution (1-5) of severity risk detected.
-- **Average Confidence** — Mean confidence of the AI judge.
+- **Average Confidence** — Mean confidence of the AI judge across all responses.
 
 ---
 
 ## Testing
 
-All tests use mocked API calls — **no API key required**.
+You can either run the native smoke test script via the console to verify generation paths:
+
+```bash
+python tests/make_test.py
+```
+
+Or run the full unit test suite (no API key required):
 
 ```bash
 python -m pytest tests/ -v
