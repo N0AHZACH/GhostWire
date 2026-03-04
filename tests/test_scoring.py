@@ -8,6 +8,7 @@ Run with:
 from __future__ import annotations
 
 import pytest
+from unittest.mock import MagicMock
 
 from src.analytics.scoring import HallucinationScorer
 from src.core.engine import AuditResult
@@ -149,7 +150,6 @@ class TestGenerateReport:
     def test_generate_report_high_risk_filter(self, sample_results):
         report = HallucinationScorer.generate_report(sample_results)
 
-        # Only hallucinations with risk_level >= 4
         high_risk = report["high_risk_items"]
         assert len(high_risk) == 2
         for item in high_risk:
@@ -163,3 +163,44 @@ class TestGenerateReport:
         assert report["hallucination_rate"] == 0.0
         assert report["accuracy"] == 0.0
         assert report["high_risk_items"] == []
+
+
+# ---------------------------------------------------------------------------
+# Tests — Session Handshake (Metrics → Auditor)
+# ---------------------------------------------------------------------------
+
+class TestSessionHandshake:
+
+    def test_build_session_metrics_keys(self, sample_results):
+        metrics = HallucinationScorer.build_session_metrics(sample_results)
+
+        expected_keys = {
+            "total_runs",
+            "reliability_score",
+            "avg_confidence",
+            "critical_count",
+        }
+
+        assert set(metrics.keys()) == expected_keys
+
+    def test_build_session_metrics_values(self, sample_results):
+        metrics = HallucinationScorer.build_session_metrics(sample_results)
+
+        assert metrics["total_runs"] == len(sample_results)
+        assert 0 <= metrics["reliability_score"] <= 1
+        assert metrics["avg_confidence"] > 0
+        assert metrics["critical_count"] == 2  # risk_level >= 4 & hallucination
+
+    def test_send_to_auditor_calls_generate_final_report(self, sample_results):
+        mock_auditor = MagicMock()
+
+        HallucinationScorer.send_to_auditor(sample_results, mock_auditor)
+
+        mock_auditor.generate_final_report.assert_called_once()
+
+        passed_dict = mock_auditor.generate_final_report.call_args[0][0]
+
+        assert "total_runs" in passed_dict
+        assert "reliability_score" in passed_dict
+        assert "avg_confidence" in passed_dict
+        assert "critical_count" in passed_dict
