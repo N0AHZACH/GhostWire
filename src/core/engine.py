@@ -17,7 +17,7 @@ class GhostwireEngine:
         self.client = genai.Client(api_key=api_key)
         
         # Default to Flash for the subject and Pro for the judge
-        self.subject_model = os.getenv("SUBJECT_MODEL", "gemini-2.5-flash")
+        self.subject_model = os.getenv("SUBJECT_MODEL", "gemini-1.5-flash-latest")
         self.judge_model = os.getenv("JUDGE_MODEL", "gemini-2.5-pro")
 
     def run_audit(self, prompt, context=""):
