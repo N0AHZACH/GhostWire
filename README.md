@@ -134,6 +134,8 @@ cp .env.example .env
 
 ## Usage
 
+it is basically like if you get your hand cut off in a car crash and you go see the doc and he/she tells you after looking at you for 30mins hat you lost your hand. Thank you, You may leave me. Yeah that is exactly what is going on here. but AI style. 
+
 ### Python API
 
 ```python
