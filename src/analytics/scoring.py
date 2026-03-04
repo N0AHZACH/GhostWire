@@ -1,12 +1,13 @@
 """
-Hallucination scoring and reliability analytics for GhostWire.
+GhostWire Analytics Layer
 
-Provides:
-- Core metrics (accuracy, hallucination rate, confidence)
+Responsible for:
+- Hallucination metrics
 - Calibration analysis
 - Reliability scoring
 - Risk grading
-- Structured report generation
+- Report generation
+- Session handshake with Auditor
 """
 
 from __future__ import annotations
@@ -15,13 +16,15 @@ from typing import List, Dict, Any
 import logging
 
 from src.core.engine import AuditResult
+from src.core.auditor import GhostwireAuditor  # Auditor handshake
 
 logger = logging.getLogger(__name__)
 
 
 class HallucinationScorer:
     """
-    Static analytics layer for evaluating hallucination audits.
+    Static analytics layer for GhostWire.
+    Computes reliability and risk metrics from audit results.
     """
 
     # ---------------------------------------------------------------------
@@ -55,31 +58,22 @@ class HallucinationScorer:
     @staticmethod
     def calculate_calibration_gap(results: List[AuditResult]) -> float:
         """
-        Measures how well model confidence aligns with reality.
-
-        Gap = | (average_confidence / 100) - accuracy |
+        Calibration Gap = | (avg_confidence / 100) - accuracy |
         """
         if not results:
             return 0.0
 
         accuracy = HallucinationScorer.calculate_accuracy(results)
-        avg_confidence = (
-            HallucinationScorer.calculate_average_confidence(results) / 100
-        )
+        avg_conf = HallucinationScorer.calculate_average_confidence(results) / 100
 
-        return abs(avg_confidence - accuracy)
+        return abs(avg_conf - accuracy)
 
     # ---------------------------------------------------------------------
     # Risk Distribution
     # ---------------------------------------------------------------------
 
     @staticmethod
-    def calculate_risk_distribution(
-        results: List[AuditResult],
-    ) -> Dict[int, int]:
-        """
-        Returns a count of risk levels (1–5).
-        """
+    def calculate_risk_distribution(results: List[AuditResult]) -> Dict[int, int]:
         distribution = {i: 0 for i in range(1, 6)}
 
         for r in results:
@@ -89,33 +83,26 @@ class HallucinationScorer:
         return distribution
 
     # ---------------------------------------------------------------------
-    # Reliability Scoring
+    # Reliability Score
     # ---------------------------------------------------------------------
 
     @staticmethod
     def calculate_reliability_score(results: List[AuditResult]) -> float:
         """
-        Composite trust score.
-
-        Formula:
-            reliability = accuracy * (1 - calibration_gap)
-
+        reliability = accuracy * (1 - calibration_gap)
         Returns value between 0 and 1.
         """
         if not results:
             return 0.0
 
         accuracy = HallucinationScorer.calculate_accuracy(results)
-        calibration_gap = HallucinationScorer.calculate_calibration_gap(results)
+        gap = HallucinationScorer.calculate_calibration_gap(results)
 
-        score = accuracy * (1 - calibration_gap)
+        score = accuracy * (1 - gap)
         return max(0.0, min(1.0, score))
 
     @staticmethod
     def assign_risk_grade(score: float) -> str:
-        """
-        Converts reliability score into A–F grade.
-        """
         if score >= 0.90:
             return "A"
         elif score >= 0.75:
@@ -128,45 +115,32 @@ class HallucinationScorer:
             return "F"
 
     # ---------------------------------------------------------------------
-    # Report Generation
+    # Full Report (Detailed Analytics)
     # ---------------------------------------------------------------------
 
     @staticmethod
     def generate_report(results: List[AuditResult]) -> Dict[str, Any]:
         """
-        Produce a summary report dictionary suitable for JSON serialization.
-
-        Returns:
-        {
-            "total_audits": int,
-            "hallucination_count": int,
-            "hallucination_rate": float,
-            "accuracy": float,
-            "average_confidence": float,
-            "calibration_gap": float,
-            "reliability_score": float,
-            "risk_grade": str,
-            "risk_distribution": dict,
-            "high_risk_items": list[dict],
-        }
+        Full analytics report used internally or by dashboard.
         """
+
         total = len(results)
         hallucination_count = sum(1 for r in results if r.is_hallucination)
 
         accuracy = HallucinationScorer.calculate_accuracy(results)
         hallucination_rate = HallucinationScorer.calculate_hallucination_rate(results)
-        average_confidence = HallucinationScorer.calculate_average_confidence(results)
+        avg_confidence = HallucinationScorer.calculate_average_confidence(results)
         calibration_gap = HallucinationScorer.calculate_calibration_gap(results)
         reliability_score = HallucinationScorer.calculate_reliability_score(results)
         risk_grade = HallucinationScorer.assign_risk_grade(reliability_score)
         risk_distribution = HallucinationScorer.calculate_risk_distribution(results)
 
-        report: Dict[str, Any] = {
+        report = {
             "total_audits": total,
             "hallucination_count": hallucination_count,
             "hallucination_rate": hallucination_rate,
             "accuracy": accuracy,
-            "average_confidence": average_confidence,
+            "average_confidence": avg_confidence,
             "calibration_gap": calibration_gap,
             "reliability_score": reliability_score,
             "risk_grade": risk_grade,
@@ -178,5 +152,54 @@ class HallucinationScorer:
             ],
         }
 
-        logger.info("Reliability report generated — %d audits.", total)
+        logger.info("Full analytics report generated — %d audits.", total)
         return report
+
+    # ---------------------------------------------------------------------
+    # SESSION HANDSHAKE WITH AUDITOR
+    # ---------------------------------------------------------------------
+
+    @staticmethod
+    def build_session_metrics(results: List[AuditResult]) -> Dict[str, Any]:
+        """
+        Builds compact session-level metrics required by Auditor.
+
+        REQUIRED KEYS:
+            total_runs
+            reliability_score
+            avg_confidence
+            critical_count
+        """
+
+        total_runs = len(results)
+        reliability_score = HallucinationScorer.calculate_reliability_score(results)
+        avg_confidence = HallucinationScorer.calculate_average_confidence(results)
+
+        critical_count = sum(
+            1 for r in results
+            if r.is_hallucination and r.risk_level >= 4
+        )
+
+        session_metrics = {
+            "total_runs": total_runs,
+            "reliability_score": reliability_score,
+            "avg_confidence": avg_confidence,
+            "critical_count": critical_count,
+        }
+
+        logger.info("Session metrics built for Auditor.")
+        return session_metrics
+
+    @staticmethod
+    def send_to_auditor(
+        results: List[AuditResult],
+        auditor: GhostwireAuditor,
+    ) -> Any:
+        """
+        Builds session metrics and sends them to Auditor.
+        """
+
+        session_metrics = HallucinationScorer.build_session_metrics(results)
+
+        # HANDSHAKE: pass dictionary to Auditor
+        return auditor.generate_final_report(session_metrics)
