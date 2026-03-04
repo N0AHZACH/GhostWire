@@ -17,6 +17,7 @@
 ## Overview
 
 **GhostWire** is an MVP tool that audits Large Language Model (LLM) outputs for **hallucinations** — statements that sound plausible but are factually incorrect or unsupported by provided context.
+TLDR being if your $200 AI tool goes cocoo, this is the tool that uses the free version to tell you that yes it did go coocoo. If humans did it we would take them to a mental asylum, but simce AI did it we call it "hallucinations".
 
 It uses a **Judge-Model architecture** powered by the latest `google-genai` standard:
 
@@ -208,7 +209,7 @@ python -m pytest tests/ -v
 
 ## License
 
-This project is for internal/educational use. License TBD.
+what license - this is basically a claude, chatGPT, Gemini mish mash product sooo ifykyk. Just idk star the project and do credit me thats all.
 
 ## Credits
 
