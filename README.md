@@ -69,8 +69,8 @@ ghostwire/
 │   └── ui/
 │       └── dashboard.py           # 🖥️ Streamlit dashboard
 ├──tests/
-│   ├── test_engine.py      # ✅ Engine unit tests (mocked)
-│   ├── test_scoring.py     # ✅ Scoring & analytics tests
+│   ├── test_engine.py             # ✅ Engine unit tests (mocked)
+│   ├── test_scoring.py            # ✅ Scoring & analytics tests
 │   └── test.csv
 ├── .env.example
 ├── .gitignore
