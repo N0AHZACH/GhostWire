@@ -12,14 +12,30 @@ Responsible for:
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
 import logging
+from collections import Counter
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Any
 
-from src.core.engine import AuditResult
-from src.core.auditor import GhostwireAuditor  # Auditor handshake
+try:
+    from src.core.auditor import GhostwireAuditor  # type: ignore
+except ImportError:
+    GhostwireAuditor = Any
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class AuditResult:
+    """Matches the JSON structure provided by the Pipeline Architect's Engine"""
+    prompt: str
+    response: str
+    is_hallucination: bool
+    confidence: int
+    risk_level: int
+    explanation: str = ""
+
+    def to_dict(self):
+        return asdict(self)
 
 class HallucinationScorer:
     """
@@ -30,6 +46,7 @@ class HallucinationScorer:
     # ---------------------------------------------------------------------
     # Core Metrics
     # ---------------------------------------------------------------------
+
 
     @staticmethod
     def calculate_hallucination_rate(results: List[AuditResult]) -> float:

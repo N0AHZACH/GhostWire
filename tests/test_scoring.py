@@ -10,8 +10,7 @@ from __future__ import annotations
 import pytest
 from unittest.mock import MagicMock
 
-from src.analytics.scoring import HallucinationScorer
-from src.core.engine import AuditResult
+from src.analytics.scoring import HallucinationScorer, AuditResult
 
 
 # ---------------------------------------------------------------------------
@@ -27,7 +26,7 @@ def make_result(
     """Create a minimal AuditResult for scoring tests."""
     return AuditResult(
         prompt="Q",
-        subject_answer="A",
+        response="A",
         is_hallucination=is_hallucination,
         explanation="Test",
         confidence=confidence,

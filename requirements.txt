@@ -1,5 +1,6 @@
-streamlit>=1.38.0
-pandas
-plotly
+google-generativeai
 python-dotenv
-google-generativeai>=0.8.0
+streamlit
+pandas
+chromadb
+pytest

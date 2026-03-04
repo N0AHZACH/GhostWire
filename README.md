@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">GhostWire</h1>
+  <h1 align="center">🔍 Project GhostWire</h1>
   <p align="center">
     <strong>AI Hallucination Detection using Judge-Model Architecture</strong>
   </p>
@@ -160,6 +160,7 @@ print(f"Calibration Gap: {report['calibration_gap']:.3f}")
 print(f"Reliability Score: {report['reliability_score']:.2f}")
 print(f"Risk Grade: {report['risk_grade']}")
 ```
+
 ### Metrics Explained
 
 - **Hallucination Rate** — Percentage of audited responses flagged as hallucinations.
@@ -167,6 +168,7 @@ print(f"Risk Grade: {report['risk_grade']}")
 - **Calibration Gap** — Difference between average confidence and actual accuracy.
 - **Reliability Score** — Composite trust score derived from accuracy and calibration.
 - **Risk Grade (A–F)** — Interpretable trust rating for deployment readiness.
+
 ---
 
 ## Testing

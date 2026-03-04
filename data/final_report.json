@@ -1,0 +1,18 @@
+{
+    "total_audits": 2,
+    "hallucination_count": 0,
+    "hallucination_rate": 0.0,
+    "accuracy": 1.0,
+    "average_confidence": 0.0,
+    "calibration_gap": 1.0,
+    "reliability_score": 0.0,
+    "risk_grade": "F",
+    "risk_distribution": {
+        "1": 2,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+    },
+    "high_risk_items": []
+}
