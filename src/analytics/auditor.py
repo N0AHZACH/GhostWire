@@ -72,7 +72,7 @@ Average Judge Confidence: {avg_conf:.1f}%
 Critical Risks Found: {criticals}
 Status: {'[RED] - ACTION REQUIRED' if rel_score < 75 or criticals > 0 else '[GREEN] - STABLE'}
 
-3. AUDITOR'S VERDICT
+3. AUDITOR'S VERDICTs
 --------------------
 This audit confirms that the Subject Model (Gemini Flash) 
 was cross-referenced against ground truth. 
