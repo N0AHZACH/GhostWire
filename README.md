@@ -208,7 +208,7 @@ python -m pytest tests/ -v
 
 ## License
 
-This project is for internal/educational use. License TBD.
+what license - this is basically a claude, chatGPT, Gemini mish mash product sooo ifykyk. Just idk star the project and do credit me thats all.
 
 ## Credits
 
