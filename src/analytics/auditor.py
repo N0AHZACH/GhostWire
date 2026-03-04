@@ -1,10 +1,10 @@
-import json
 import random
 from datetime import datetime
 
 class GhostwireAuditor:
     def __init__(self):
         # High-stakes domains that escalate risk levels automatically
+        
         self.critical_domains = ["Medical", "Legal", "Finance", "Infrastructure"]
         self.audit_log = []
 
