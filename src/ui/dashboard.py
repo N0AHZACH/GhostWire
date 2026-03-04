@@ -2,14 +2,14 @@ import sys
 import os
 
 # This tells the computer to look at the main project folder
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import json
 import time
-from src.core.engine import GhostwireEngine # Fixed case sensitivity
+from src.core.engine import GhostwireEngine # Role 3: Pipeline Architect's logic
 
 # --- UI CONFIGURATION ---
 st.set_page_config(page_title="GhostWire | Hallucination Detector", layout="wide")
@@ -27,7 +27,7 @@ st.markdown("""
 st.title("🛡️ GhostWire")
 st.caption("AI Hallucination Detection using Judge-Model Architecture")
 
-# --- SIDEBAR: Configuration for Role 1 & 6 ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.header("⚙️ Settings")
     model_provider = st.selectbox("Judge Model", ["Gemini Pro (Default)", "GPT-4o", "Claude 3.5"])
@@ -36,7 +36,7 @@ with st.sidebar:
     threshold = st.slider("Risk Sensitivity Threshold", 1, 5, 3)
     st.info("GhostWire identifies factual inconsistencies between a Subject Model and Ground Truth.")
 
-# --- TABS: Single Test vs Bulk ---
+# --- TABS ---
 tab1, tab2 = st.tabs(["🎯 Single Test", "📦 Bulk Evaluation"])
 
 # --- TAB 1: SINGLE TESTING ---
@@ -55,11 +55,8 @@ with tab1:
                 st.warning("Please provide both context and prompt.")
             else:
                 engine = GhostwireEngine() 
-                
                 with st.spinner("Judge Model is auditing..."):
-                    # Calling the real audit pipeline
                     raw_result = engine.run_audit(prompt=model_output, context=context_data)
-                
                 st.session_state['latest_result'] = raw_result
 
     with col_out:
@@ -68,21 +65,17 @@ with tab1:
             full_res = st.session_state['latest_result']
             
             if full_res["status"] == "success":
-                # Extract the nested audit data from Role 3's engine
                 res = full_res["audit_data"]
                 subject_response = full_res["subject_response"]
 
-                # --- START AUDITOR INTEGRATION ---
+                # --- AUDITOR INTEGRATION (Role 6) ---
                 from src.analytics.auditor import GhostwireAuditor
                 auditor = GhostwireAuditor()
-                
-                # Use the sidebar 'test_domain' for dynamic risk classification
                 ethical_risk = auditor.classify_ethical_risk(res, domain=test_domain) 
                 
                 st.markdown(f"### ⚖️ Auditor's Verdict: **{ethical_risk}**")
-                # --- END AUDITOR INTEGRATION ---
                 
-                # THE VISUAL INDICATORS (Traffic Lights)
+                # VISUAL INDICATORS
                 if res.get('is_hallucination'):
                     st.markdown('<p class="status-red">🔴 HALLUCINATION DETECTED</p>', unsafe_allow_html=True)
                     st.error(f"**Explanation:** {res.get('auditor_notes', 'Fact-check failed.')}")
@@ -90,7 +83,7 @@ with tab1:
                     st.markdown('<p class="status-green">🟢 NO HALLUCINATION FOUND</p>', unsafe_allow_html=True)
                     st.success("The output is grounded in the provided context.")
 
-                # RELIABILITY METRICS
+                # METRICS
                 m1, m2 = st.columns(2)
                 with m1:
                     st.metric("Confidence Score", f"{res.get('confidence_score', 0)}%")
@@ -106,7 +99,7 @@ with tab1:
                 with st.expander("View Raw JSON Verdict"):
                     st.json(res)
             else:
-                st.error(f"Error: {full_res.get('message')}")
+                st.error(f"Pipeline Error: {full_res.get('message')}")
         else:
             st.info("Run an audit to see results.")
 
@@ -117,9 +110,8 @@ with tab2:
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
-        st.write("Dataset Preview:", df.head(3))
-        
         if st.button("Start Bulk Audit"):
+            engine = GhostwireEngine()
             progress_bar = st.progress(0)
             bulk_results = []
             
@@ -130,13 +122,7 @@ with tab2:
                 progress_bar.progress((i + 1) / len(df))
             
             df['Reliability_Score'] = bulk_results
-            
-            # VISUAL CHARTS
             st.divider()
-            fig = px.histogram(df, x="Reliability_Score", 
-                               title="Reliability Distribution across Dataset",
-                               color_discrete_sequence=['#2ecc71'])
+            fig = px.histogram(df, x="Reliability_Score", title="Reliability Distribution", color_discrete_sequence=['#2ecc71'])
             st.plotly_chart(fig, use_container_width=True)
-            
             st.dataframe(df)
-            st.download_button("💾 Download Audit Report", df.to_csv(index=False), "ghostwire_report.csv")
