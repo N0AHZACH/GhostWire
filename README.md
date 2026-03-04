@@ -68,8 +68,10 @@ ghostwire/
 │   │   └── scoring.py             # 📊 Hallucination metrics
 │   └── ui/
 │       └── dashboard.py           # 🖥️ Streamlit dashboard
-├── tests/
-│   └── test_engine.py             # ✅ Unit tests (mocked)
+├──tests/
+│   ├── test_engine.py      # ✅ Engine unit tests (mocked)
+│   ├── test_scoring.py     # ✅ Scoring & analytics tests
+│   └── test.csv
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
@@ -150,11 +152,21 @@ streamlit run src/ui/dashboard.py
 ```python
 from src.analytics.scoring import HallucinationScorer
 
-scorer = HallucinationScorer()
-report = scorer.generate_report(results)
-print(f"Hallucination Rate: {report['hallucination_rate']:.0%}")
-```
+report = HallucinationScorer.generate_report(results)
 
+print(f"Accuracy: {report['accuracy']:.2%}")
+print(f"Hallucination Rate: {report['hallucination_rate']:.2%}")
+print(f"Calibration Gap: {report['calibration_gap']:.3f}")
+print(f"Reliability Score: {report['reliability_score']:.2f}")
+print(f"Risk Grade: {report['risk_grade']}")
+```
+### Metrics Explained
+
+- **Hallucination Rate** — Percentage of audited responses flagged as hallucinations.
+- **Accuracy** — Percentage of responses judged factually correct.
+- **Calibration Gap** — Difference between average confidence and actual accuracy.
+- **Reliability Score** — Composite trust score derived from accuracy and calibration.
+- **Risk Grade (A–F)** — Interpretable trust rating for deployment readiness.
 ---
 
 ## Testing
@@ -183,4 +195,4 @@ This project is for internal/educational use. License TBD.
 
 ## Credits
 
-Thank you GenAI for helping me write this READEM.md and also causing the gizzilion bugs in this projects. Thank you very much.
+Thank you GenAI for helping me write this READEM.md and also causing the gizzilion bugs in this projects. Thank you very much. (This is too hilarious for me to change it - Nikitha)
