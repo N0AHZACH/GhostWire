@@ -28,7 +28,9 @@ def run_smoke_test():
         print(f"Explanation: {audit_data.get('auditor_notes', '')}")
         print("-" * 30)
         
-        if is_hallucination:
+        if raw_result.get("status") == "error":
+            print(f"🔥 PIPELINE ERROR: {raw_result.get('message')}")
+        elif is_hallucination:
             print("✅ TEST PASSED: Ghost successfully caught.")
         else:
             print("❌ TEST FAILED: The engine did not flag the hallucination.")

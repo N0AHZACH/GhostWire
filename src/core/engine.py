@@ -1,6 +1,7 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 # Load variables from the root .env
@@ -13,24 +14,20 @@ class GhostwireEngine:
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables.")
             
-        genai.configure(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
         
         # Default to Flash for the subject and Pro for the judge
-        self.subject = genai.GenerativeModel(os.getenv("SUBJECT_MODEL", "gemini-1.5-flash"))
-        
-        # UPGRADE 1: Strict JSON enforcement at the model level
-        self.judge = genai.GenerativeModel(
-            model_name=os.getenv("JUDGE_MODEL", "gemini-1.5-pro"),
-            generation_config={"response_mime_type": "application/json"}
-        )
+        self.subject_model = os.getenv("SUBJECT_MODEL", "gemini-2.5-flash")
+        self.judge_model = os.getenv("JUDGE_MODEL", "gemini-2.5-pro")
 
     def run_audit(self, prompt, context=""):
         try:
             # 1. Subject generates a response
             # Higher temperature (0.9) is used specifically to induce hallucination for testing
-            res = self.subject.generate_content(
-                prompt, 
-                generation_config={"temperature": 0.9}
+            res = self.client.models.generate_content(
+                model=self.subject_model,
+                contents=prompt, 
+                config=types.GenerateContentConfig(temperature=0.9)
             )
             subject_response = res.text
 
@@ -60,7 +57,11 @@ class GhostwireEngine:
             }}
             """
             
-            verdict_res = self.judge.generate_content(audit_prompt)
+            verdict_res = self.client.models.generate_content(
+                model=self.judge_model,
+                contents=audit_prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
             verdict_text = verdict_res.text
 
             # 3. Final Output Construction

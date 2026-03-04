@@ -1,6 +1,7 @@
-google-generativeai
+google-genai
 python-dotenv
 streamlit
 pandas
 chromadb
 pytest
+plotly

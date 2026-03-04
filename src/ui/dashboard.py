@@ -2,14 +2,14 @@ import sys
 import os
 
 # This tells the computer to look at the main project folder
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import json
 import time
-from src.core.engine import GhostWireEngine # Role 3: Pipeline Architect's logic
+from src.core.engine import GhostwireEngine # Role 3: Pipeline Architect's logic
 
 # --- UI CONFIGURATION ---
 st.set_page_config(page_title="GhostWire | Hallucination Detector", layout="wide")
@@ -54,7 +54,7 @@ with tab1:
                 st.warning("Please provide both context and prompt.")
             else:
                 # INTEGRATION: Initializing the real engine from Role 3
-                engine = GhostWireEngine() 
+                engine = GhostwireEngine() 
                 
                 with st.spinner("Judge Model is auditing..."):
                     # Calling the real audit pipeline
@@ -66,11 +66,15 @@ with tab1:
         st.subheader("Audit Verdict")
         if 'latest_result' in st.session_state:
             res = st.session_state['latest_result']
+            audit_data = res.get('audit_data', {})
             
             # THE VISUAL INDICATORS (Traffic Lights)
-            if res['is_hallucination']:
+            if res.get('status') == 'error':
+                st.markdown('<p class="status-red">🔥 PIPELINE ERROR</p>', unsafe_allow_html=True)
+                st.error(f"**Message:** {res.get('message', 'Unknown error.')}")
+            elif audit_data.get('is_hallucination'):
                 st.markdown('<p class="status-red">🔴 HALLUCINATION DETECTED</p>', unsafe_allow_html=True)
-                st.error(f"**Explanation:** {res.get('explanation', 'No explanation provided.')}")
+                st.error(f"**Explanation:** {audit_data.get('auditor_notes', 'No explanation provided.')}")
             else:
                 st.markdown('<p class="status-green">🟢 NO HALLUCINATION FOUND</p>', unsafe_allow_html=True)
                 st.success("The output is grounded in the provided context.")
@@ -78,10 +82,10 @@ with tab1:
             # RELIABILITY METRICS
             m1, m2 = st.columns(2)
             with m1:
-                st.metric("Confidence Score", f"{res.get('confidence', 0)}%")
+                st.metric("Confidence Score", f"{audit_data.get('confidence_score', 0)}%")
             with m2:
                 # Risk level visual comparison to threshold
-                risk = res.get('risk_level', 0)
+                risk = audit_data.get('risk_level', 0)
                 st.metric("Risk Level", f"{risk}/5", 
                           delta="High Risk" if risk >= threshold else "Acceptable",
                           delta_color="inverse" if risk >= threshold else "normal")
@@ -101,7 +105,7 @@ with tab2:
         st.write("Dataset Preview:", df.head(3))
         
         if st.button("Start Bulk Audit"):
-            engine = GhostWireEngine()
+            engine = GhostwireEngine()
             progress_bar = st.progress(0)
             bulk_results = []
             
