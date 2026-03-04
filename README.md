@@ -88,7 +88,7 @@ ghostwire/
 | 2 — Domain Expert      | TBD     | `data/`          | Curates ground-truth reference documents          |
 | 3 — Pipeline Architect | **You** | `src/core/`      | Orchestrates Subject → Judge pipeline             |
 | 4 — RAG Specialist     | TBD     | `src/retrieval/` | Implements vector DB for context fetching         |
-| 5 — Metrics Analyst    | TBD     | `src/analytics/` | Analyzes hallucination rates & risk               |
+| 5 — Metrics Analyst    | Nikitha | `src/analytics/` | Analyzes hallucination rates & risk               |
 | 6 — Frontend Developer | TBD     | `src/ui/`        | Builds the Streamlit dashboard                    |
 
 ---
