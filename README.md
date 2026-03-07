@@ -95,7 +95,7 @@ ghostwire/
 | Role                               | Owner     | Module           | Description                                                                      |
 | ---------------------------------- | --------- | ---------------- | -------------------------------------------------------------------------------- |
 | 1 — Prompt Engineer                | TBD       | `data/`          | Designs adversarial prompts to stress-test models                                |
-| 2 — Domain Expert/RAG Specialist   | TBD       | `src/retrieval/` | Curates ground-truth documents and manages the Vector Database (ChromaDB/FAISS). |
+| 2 — Domain Expert/RAG Specialist   | Zayed     | `src/retrieval/` | Curates ground-truth documents and manages the Vector Database (ChromaDB/FAISS). |
 | 3 — Pipeline Architect             | NOAH      | `src/core/`      | Orchestrates Subject → Judge pipeline architecture                               |
 | 4 — Metrics Analyst                | Nikitha   | `src/analytics/` | Analyzes hallucination rates, calibration gaps & risk                            |
 | 5 — Frontend Developer             | TBD       | `src/ui/`        | Builds the Streamlit dashboard & Plotly data charts                              |
