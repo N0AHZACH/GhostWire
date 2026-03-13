@@ -13,7 +13,6 @@ Responsible for:
 from __future__ import annotations
 
 import logging
-from collections import Counter
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Any
 
